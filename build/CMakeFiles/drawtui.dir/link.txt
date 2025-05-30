@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/drawtui.dir/main.cpp.o -o drawtui  FTXUI/libftxui-screen.a FTXUI/libftxui-dom.a FTXUI/libftxui-component.a FTXUI/libftxui-dom.a FTXUI/libftxui-screen.a 
