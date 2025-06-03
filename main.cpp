@@ -47,10 +47,18 @@ int main()
     }
     return canvas(std::move(c)); });
 
+    Component clear_board = Renderer([&]
+                                     {
+                                         Canvas c = Canvas(300, 300);
+                                         c.DrawText(0, 0, "Board Cleared!");
+                                         clicked_points.clear();
+                                         return canvas(std::move(c)); });
+
     int selected_tab = 0;
     Component tab = Container::Tab(
         {simple_pen,
-         thick_pen},
+         thick_pen,
+         clear_board},
         &selected_tab);
 
     Component tab_with_mouse = CatchEvent(tab, [&](Event e)
@@ -93,7 +101,8 @@ int main()
 
     std::vector<std::string> tab_titles = {
         "Simple Pen",
-        "Thick Pen"};
+        "Thick Pen",
+        "Clear Board"};
     Component tab_toggle = Menu(&tab_titles, &selected_tab);
 
     Component component = Container::Horizontal({tab_toggle,
