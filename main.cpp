@@ -21,9 +21,9 @@ int main()
 
     std::vector<std::pair<std::pair<int, int>, int>> clicked_points; //{(x,y), 0} coordinates and choice number
 
-    auto simple_pen = Renderer([&]
-                               {
-    auto c = Canvas(300, 300);
+    Component simple_pen = Renderer([&]
+                                    {
+    Canvas c = Canvas(300, 300);
     c.DrawText(0, 0, "Simple pen");
     for (size_t i = 0; i < clicked_points.size(); i++)
     {
@@ -34,9 +34,9 @@ int main()
     }
     return canvas(std::move(c)); });
 
-    auto thick_pen = Renderer([&]
-                              {
-    auto c = Canvas(300, 300);
+    Component thick_pen = Renderer([&]
+                                   {
+    Canvas c = Canvas(300, 300);
     c.DrawText(0, 0, "Thick pen");
     for (size_t i = 0; i < clicked_points.size(); i++)
     {
@@ -48,13 +48,13 @@ int main()
     return canvas(std::move(c)); });
 
     int selected_tab = 0;
-    auto tab = Container::Tab(
+    Component tab = Container::Tab(
         {simple_pen,
          thick_pen},
         &selected_tab);
 
-    auto tab_with_mouse = CatchEvent(tab, [&](Event e)
-                                     {
+    Component tab_with_mouse = CatchEvent(tab, [&](Event e)
+                                          {
         if (e.is_mouse() && e.mouse().x < 130)
         {
             
@@ -94,18 +94,18 @@ int main()
     std::vector<std::string> tab_titles = {
         "Simple Pen",
         "Thick Pen"};
-    auto tab_toggle = Menu(&tab_titles, &selected_tab);
+    Component tab_toggle = Menu(&tab_titles, &selected_tab);
 
-    auto component = Container::Horizontal({tab_toggle,
-                                            tab_with_mouse});
+    Component component = Container::Horizontal({tab_toggle,
+                                                 tab_with_mouse});
 
-    auto component_renderer = Renderer(component, [&]
-                                       { return hbox({tab_with_mouse->Render(),
-                                                      separator(),
-                                                      tab_toggle->Render() | size(WIDTH, EQUAL, 30)}) |
-                                                border; });
+    Component component_renderer = Renderer(component, [&]
+                                            { return hbox({tab_with_mouse->Render(),
+                                                           separator(),
+                                                           tab_toggle->Render() | size(WIDTH, EQUAL, 30)}) |
+                                                     border; });
 
-    auto screen = ScreenInteractive::FitComponent();
+    ScreenInteractive screen = ScreenInteractive::FitComponent();
     screen.Loop(component_renderer);
 
     return 0;
