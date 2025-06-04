@@ -31,6 +31,45 @@ Element ColorString(int red, int green, int blue)
     );
 }
 
+void set_default_colours(int selection, int *red, int *green, int *blue)
+{
+    switch (selection)
+    {
+    case 0:
+        *red = 255;
+        *green = 0;
+        *blue = 0;
+        break;
+    case 1: // Blue
+        *red = 0;
+        *green = 0;
+        *blue = 255;
+        break;
+    case 2: // Green
+        *red = 0;
+        *green = 255;
+        *blue = 0;
+        break;
+    case 3: // Yellow
+        *red = 255;
+        *green = 255;
+        *blue = 0;
+        break;
+    case 4: // Orange
+        *red = 255;
+        *green = 165;
+        *blue = 0;
+        break;
+    case 5: // White
+        *red = 255;
+        *green = 255;
+        *blue = 255;
+        break;
+    default:
+        break;
+    }
+}
+
 class Clicked_Point
 {
 private:
@@ -79,9 +118,9 @@ int main()
     int mouse_y = 0;
     bool is_drawing = false;
 
-    int red = 128;
-    int green = 25;
-    int blue = 100;
+    int red = 255;
+    int green = 0;
+    int blue = 0;
 
     std::vector<std::pair<std::pair<int, int>, int>> clicked_points; //{(x,y), 0} coordinates and choice number
     std::vector<Clicked_Point> cp;
@@ -121,6 +160,8 @@ int main()
                                          return canvas(std::move(c)); });
 
     int selected_tab = 0;
+    int radio_selected = 0;
+    int prev_radio_selected = 0;
     Component tab = Container::Tab(
         {simple_pen,
          thick_pen,
@@ -131,35 +172,34 @@ int main()
                                           {
         if (e.is_mouse() && e.mouse().x < 130)
         {
+        mouse_x = (e.mouse().x - 1) * 2;
+        mouse_y = (e.mouse().y - 1) * 4;
 
-            mouse_x = (e.mouse().x - 1) * 2;
-            mouse_y = (e.mouse().y - 1) * 4;
-
-            if (e.mouse().button == Mouse::Button::Left)
+        if (e.mouse().button == Mouse::Button::Left)
+        {
+            if (e.mouse().motion == Mouse::Motion::Pressed)
             {
-                if (e.mouse().motion == Mouse::Motion::Pressed)
-                {
-                    is_drawing = true;
-                    if(selected_tab == 0)
-                    cp.push_back({{mouse_x,mouse_y},0,red, green, blue});
-                    else if (selected_tab == 1)
-                    cp.push_back({{mouse_x, mouse_y},1,red, green, blue});
-                    return true;
-                }
-                else if (e.mouse().motion == Mouse::Motion::Released)
-                {
-                    is_drawing = false;
-                    return true;
-                }
-            }
-            if (is_drawing && e.mouse().motion == Mouse::Motion::Pressed)
-            {
-                if(selected_tab == 0)
-                    cp.push_back({{mouse_x,mouse_y},0,red, green, blue});
+                is_drawing = true;
+                if (selected_tab == 0)
+                    cp.push_back({{mouse_x, mouse_y}, 0, red, green, blue});
                 else if (selected_tab == 1)
-                    cp.push_back({{mouse_x, mouse_y},1,red, green, blue});
+                    cp.push_back({{mouse_x, mouse_y}, 1, red, green, blue});
                 return true;
             }
+            else if (e.mouse().motion == Mouse::Motion::Released)
+            {
+                is_drawing = false;
+                return true;
+            }
+        }
+        if (is_drawing && e.mouse().motion == Mouse::Motion::Pressed)
+        {
+            if (selected_tab == 0)
+                cp.push_back({{mouse_x, mouse_y}, 0, red, green, blue});
+            else if (selected_tab == 1)
+                cp.push_back({{mouse_x, mouse_y}, 1, red, green, blue});
+            return true;
+        }
 
         }
     return false; });
@@ -178,13 +218,30 @@ int main()
         "Simple Pen",
         "Thick Pen",
         "Clear Board"};
+
+    std::vector<std::string> radio_colour_options = {
+        "Red", "Blue", "Green", "Yellow", "Orange", "White"};
+
+    Component radiobox_colours = Radiobox(&radio_colour_options, &radio_selected);
+
     Component tab_toggle = Menu(&tab_titles, &selected_tab);
 
     Component main_component = Container::Horizontal({tab_toggle,
-                                                      tab_with_mouse, slider_container});
+                                                      tab_with_mouse,
+                                                      radiobox_colours,
+                                                      slider_container});
 
     Component component_renderer = Renderer(main_component, [&]
-                                            { return hbox({
+                                            { 
+                                                
+                                                if(radio_selected != prev_radio_selected)
+                                                {
+                                                    set_default_colours(radio_selected, &red, &green, &blue);
+                                                    prev_radio_selected = radio_selected;
+                                                }
+                                                
+                                                
+                                                return hbox({
                                                          tab_with_mouse->Render(),
                                                          separator(),
                                                          vbox({
@@ -192,7 +249,7 @@ int main()
                                                              separator(),
                                                              ColorTile(red, green, blue),
                                                              separator(),
-                                                             ColorString(red, green, blue),
+                                                             radiobox_colours->Render(),
                                                              separator(),
                                                              slider_red->Render(),
                                                              separator(),
