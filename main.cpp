@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <memory>
+#include <string>
 
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
@@ -10,6 +12,64 @@
 #include "ftxui/component/screen_interactive.hpp"
 #include "ftxui/dom/canvas.hpp"
 #include "ftxui/screen/color.hpp"
+#include "ftxui/component/captured_mouse.hpp"
+
+using namespace ftxui;
+
+Element ColorTile(int red, int green, int blue)
+{
+    return text("") | size(WIDTH, GREATER_THAN, 14) |
+           size(HEIGHT, GREATER_THAN, 7) | bgcolor(Color::RGB(red, green, blue));
+}
+
+Element ColorString(int red, int green, int blue)
+{
+    return text("RGB = (" +                   //
+                std::to_string(red) + "," +   //
+                std::to_string(green) + "," + //
+                std::to_string(blue) + ")"    //
+    );
+}
+
+class Clicked_Point
+{
+private:
+    std::pair<int, int> coord;
+    int tab_option;
+    int red, green, blue;
+
+public:
+    Clicked_Point(std::pair<int, int> c, int t_o, int r = 50, int g = 90, int b = 200) : coord(c), tab_option(t_o), red(r), green(g), blue(b)
+    {
+    }
+
+    int get_tab_option()
+    {
+        return tab_option;
+    }
+
+    int get_red()
+    {
+        return red;
+    }
+    int get_green()
+    {
+        return green;
+    }
+    int get_blue()
+    {
+        return blue;
+    }
+
+    int get_x()
+    {
+        return coord.first;
+    }
+    int get_y()
+    {
+        return coord.second;
+    }
+};
 
 int main()
 {
@@ -19,18 +79,24 @@ int main()
     int mouse_y = 0;
     bool is_drawing = false;
 
+    int red = 128;
+    int green = 25;
+    int blue = 100;
+
     std::vector<std::pair<std::pair<int, int>, int>> clicked_points; //{(x,y), 0} coordinates and choice number
+    std::vector<Clicked_Point> cp;
 
     Component simple_pen = Renderer([&]
                                     {
     Canvas c = Canvas(300, 300);
     c.DrawText(0, 0, "Simple pen");
-    for (size_t i = 0; i < clicked_points.size(); i++)
+    for (size_t i = 0; i < cp.size(); i++)
     {
-        if(clicked_points[i].second == 0)
-        c.DrawPoint(clicked_points[i].first.first, clicked_points[i].first.second, true,Color::Blue3);
-        else if (clicked_points[i].second == 1)
-        c.DrawBlockCircle(clicked_points[i].first.first, clicked_points[i].first.second, true,Color::Blue3);
+        if(cp[i].get_tab_option() == 0)
+        c.DrawPoint(cp[i].get_x(), cp[i].get_y(), true,Color::RGB(cp[i].get_red(), cp[i].get_green(), cp[i].get_blue()));
+        
+        else if (cp[i].get_tab_option() == 1)
+        c.DrawBlockCircle(cp[i].get_x(), cp[i].get_y(), true,Color::RGB(cp[i].get_red(), cp[i].get_green(), cp[i].get_blue()));
     }
     return canvas(std::move(c)); });
 
@@ -38,12 +104,12 @@ int main()
                                    {
     Canvas c = Canvas(300, 300);
     c.DrawText(0, 0, "Thick pen");
-    for (size_t i = 0; i < clicked_points.size(); i++)
+    for (size_t i = 0; i < cp.size(); i++)
     {
-        if(clicked_points[i].second == 1)
-        c.DrawBlockCircle(clicked_points[i].first.first, clicked_points[i].first.second, true,Color::Blue3);
-        else if(clicked_points[i].second == 0)
-        c.DrawPoint(clicked_points[i].first.first, clicked_points[i].first.second, true,Color::Blue3);
+        if(cp[i].get_tab_option() == 0)
+        c.DrawPoint(cp[i].get_x(), cp[i].get_y(), true,Color::RGB(cp[i].get_red(), cp[i].get_green(), cp[i].get_blue()));
+        else if (cp[i].get_tab_option() == 1)
+        c.DrawBlockCircle(cp[i].get_x(), cp[i].get_y(), true,Color::RGB(cp[i].get_red(), cp[i].get_green(), cp[i].get_blue()));
     }
     return canvas(std::move(c)); });
 
@@ -51,7 +117,7 @@ int main()
                                      {
                                          Canvas c = Canvas(300, 300);
                                          c.DrawText(0, 0, "Board Cleared!");
-                                         clicked_points.clear();
+                                         cp.clear();
                                          return canvas(std::move(c)); });
 
     int selected_tab = 0;
@@ -65,7 +131,6 @@ int main()
                                           {
         if (e.is_mouse() && e.mouse().x < 130)
         {
-            
 
             mouse_x = (e.mouse().x - 1) * 2;
             mouse_y = (e.mouse().y - 1) * 4;
@@ -76,9 +141,9 @@ int main()
                 {
                     is_drawing = true;
                     if(selected_tab == 0)
-                    clicked_points.push_back({{mouse_x, mouse_y},0});
+                    cp.push_back({{mouse_x,mouse_y},0,red, green, blue});
                     else if (selected_tab == 1)
-                    clicked_points.push_back({{mouse_x, mouse_y},1});
+                    cp.push_back({{mouse_x, mouse_y},1,red, green, blue});
                     return true;
                 }
                 else if (e.mouse().motion == Mouse::Motion::Released)
@@ -90,14 +155,24 @@ int main()
             if (is_drawing && e.mouse().motion == Mouse::Motion::Pressed)
             {
                 if(selected_tab == 0)
-                    clicked_points.push_back({{mouse_x, mouse_y},0});
+                    cp.push_back({{mouse_x,mouse_y},0,red, green, blue});
                 else if (selected_tab == 1)
-                    clicked_points.push_back({{mouse_x, mouse_y},1});
+                    cp.push_back({{mouse_x, mouse_y},1,red, green, blue});
                 return true;
             }
-        
+
         }
     return false; });
+
+    Component slider_red = Slider("Red  :", &red, 0, 255, 1);
+    Component slider_green = Slider("Green:", &green, 0, 255, 1);
+    Component slider_blue = Slider("Blue :", &blue, 0, 255, 1);
+
+    Component slider_container = Container::Vertical({
+        slider_red,
+        slider_green,
+        slider_blue,
+    });
 
     std::vector<std::string> tab_titles = {
         "Simple Pen",
@@ -105,15 +180,30 @@ int main()
         "Clear Board"};
     Component tab_toggle = Menu(&tab_titles, &selected_tab);
 
-    Component component = Container::Horizontal({tab_toggle,
-                                                 tab_with_mouse});
+    Component main_component = Container::Horizontal({tab_toggle,
+                                                      tab_with_mouse, slider_container});
 
-    Component component_renderer = Renderer(component, [&]
-                                            { return hbox({tab_with_mouse->Render(),
-                                                           separator(),
-                                                           tab_toggle->Render() | size(WIDTH, EQUAL, 30)}) |
+    Component component_renderer = Renderer(main_component, [&]
+                                            { return hbox({
+                                                         tab_with_mouse->Render(),
+                                                         separator(),
+                                                         vbox({
+                                                             tab_toggle->Render(),
+                                                             separator(),
+                                                             ColorTile(red, green, blue),
+                                                             separator(),
+                                                             ColorString(red, green, blue),
+                                                             separator(),
+                                                             slider_red->Render(),
+                                                             separator(),
+                                                             slider_green->Render(),
+                                                             separator(),
+                                                             slider_blue->Render(),
+                                                             separator(),
+                                                             ColorString(red, green, blue),
+                                                         }) | size(WIDTH, EQUAL, 30),
+                                                     }) |
                                                      border; });
-
     ScreenInteractive screen = ScreenInteractive::FitComponent();
     screen.Loop(component_renderer);
 
