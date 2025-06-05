@@ -21,6 +21,8 @@ git clone <repo url>
 - cd build
 - `cmake ..`
 - `cmake --build . --config Release`
+- cd Release
+- drawtui.exe
 
 ### Windows (MinGW/MSYS2)
 - cd drawtui
