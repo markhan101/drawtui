@@ -6,8 +6,28 @@ If you are showing someone something and want to draw a quick sketch, this is th
 
 This tool uses FTXUI to render a simple canvas with several pen options. 
 
-## Installation
-To use this just clone this repository and run `cmake ./` and then `make`.
+## Build
+
+git clone <repo url>
+
+### Linux
+cd drawtui
+`cmake ./` 
+`make`.
+
+### Windows (Visual Studio)
+cd drawtui
+mkdir build
+cd build
+`cmake ..`
+`cmake --build . --config Release`
+
+### Windows (MinGW/MSYS2)
+cd drawtui
+mkdir build
+cd build
+`cmake -G "MinGW Makefiles" ..`
+`make`
 
 Enjoy and let me know if you have any issues or suggestions :)
 
