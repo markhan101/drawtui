@@ -15,122 +15,125 @@
 #include "ftxui/screen/color.hpp"
 #include "ftxui/component/captured_mouse.hpp"
 
+#define CANVAS_WIDTH 300
+#define CANVAS_HEIGHT 300
+
 ftxui::Element ColorTile(int red, int green, int blue)
 {
-    return ftxui::text("") | ftxui::size(ftxui::WIDTH, ftxui::GREATER_THAN, 14) |
-           ftxui::size(ftxui::HEIGHT, ftxui::GREATER_THAN, 7) | ftxui::bgcolor(ftxui::Color::RGB(red, green, blue));
+  return ftxui::text("") | ftxui::size(ftxui::WIDTH, ftxui::GREATER_THAN, 14) |
+         ftxui::size(ftxui::HEIGHT, ftxui::GREATER_THAN, 7) | ftxui::bgcolor(ftxui::Color::RGB(red, green, blue));
 }
 
 ftxui::Element ColorString(int red, int green, int blue)
 {
-    return ftxui::text("RGB = (" +
-                       std::to_string(red) + "," +
-                       std::to_string(green) + "," +
-                       std::to_string(blue) + ")");
+  return ftxui::text("RGB = (" +
+                     std::to_string(red) + "," +
+                     std::to_string(green) + "," +
+                     std::to_string(blue) + ")");
 }
 
 void set_default_colours(int selection, int *red, int *green, int *blue)
 {
-    switch (selection)
-    {
-    case 0:
-        *red = 255;
-        *green = 0;
-        *blue = 0;
-        break;
-    case 1:
-        *red = 0;
-        *green = 0;
-        *blue = 255;
-        break;
-    case 2:
-        *red = 0;
-        *green = 255;
-        *blue = 0;
-        break;
-    case 3:
-        *red = 255;
-        *green = 255;
-        *blue = 0;
-        break;
-    case 4:
-        *red = 255;
-        *green = 165;
-        *blue = 0;
-        break;
-    case 5:
-        *red = 255;
-        *green = 255;
-        *blue = 255;
-        break;
-    default:
-        break;
-    }
+  switch (selection)
+  {
+  case 0:
+    *red = 255;
+    *green = 0;
+    *blue = 0;
+    break;
+  case 1:
+    *red = 0;
+    *green = 0;
+    *blue = 255;
+    break;
+  case 2:
+    *red = 0;
+    *green = 255;
+    *blue = 0;
+    break;
+  case 3:
+    *red = 255;
+    *green = 255;
+    *blue = 0;
+    break;
+  case 4:
+    *red = 255;
+    *green = 165;
+    *blue = 0;
+    break;
+  case 5:
+    *red = 255;
+    *green = 255;
+    *blue = 255;
+    break;
+  default:
+    break;
+  }
 }
 
 class Clicked_Point
 {
 private:
-    std::pair<int,
-              int>
-        coord;
-    int tab_option;
-    int red,
-        green,
-        blue;
+  std::pair<int,
+            int>
+      coord;
+  int tab_option;
+  int red,
+      green,
+      blue;
 
 public:
-    Clicked_Point(std::pair<int, int> c, int t_o, int r = 50, int g = 90, int b = 200) : coord(c),
-                                                                                         tab_option(t_o),
-                                                                                         red(r),
-                                                                                         green(g),
-                                                                                         blue(b) {}
+  Clicked_Point(std::pair<int, int> c, int t_o, int r = 50, int g = 90, int b = 200) : coord(c),
+                                                                                       tab_option(t_o),
+                                                                                       red(r),
+                                                                                       green(g),
+                                                                                       blue(b) {}
 
-    int get_tab_option() const
-    {
-        return tab_option;
-    }
+  int get_tab_option() const
+  {
+    return tab_option;
+  }
 
-    int get_red() const
-    {
-        return red;
-    }
-    int get_green() const
-    {
-        return green;
-    }
-    int get_blue() const
-    {
-        return blue;
-    }
+  int get_red() const
+  {
+    return red;
+  }
+  int get_green() const
+  {
+    return green;
+  }
+  int get_blue() const
+  {
+    return blue;
+  }
 
-    int get_x() const
-    {
-        return coord.first;
-    }
-    int get_y() const
-    {
-        return coord.second;
-    }
+  int get_x() const
+  {
+    return coord.first;
+  }
+  int get_y() const
+  {
+    return coord.second;
+  }
 };
 
 int main()
 {
-    using namespace ftxui;
+  using namespace ftxui;
 
-    int mouse_x = 0;
-    int mouse_y = 0;
-    bool is_drawing = false;
+  int mouse_x = 0;
+  int mouse_y = 0;
+  bool is_drawing = false;
 
-    int red = 255;
-    int green = 0;
-    int blue = 0;
+  int red = 255;
+  int green = 0;
+  int blue = 0;
 
-    std::vector<Clicked_Point> cp;
+  std::vector<Clicked_Point> cp;
 
-    Component simple_pen = Renderer([&]
-                                    {
-    Canvas c = Canvas(300, 300);
+  Component simple_pen = Renderer([&]
+                                  {
+    Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     c.DrawText(0, 0, "Simple pen");
     for (size_t i = 0; i < cp.size(); i++) {
       if (cp[i].get_tab_option() == 0)
@@ -141,9 +144,9 @@ int main()
     }
     return canvas(std::move(c)); });
 
-    Component thick_pen = Renderer([&]
-                                   {
-    Canvas c = Canvas(300, 300);
+  Component thick_pen = Renderer([&]
+                                 {
+    Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     c.DrawText(0, 0, "Thick pen");
     for (size_t i = 0; i < cp.size(); i++) {
       if (cp[i].get_tab_option() == 0)
@@ -153,17 +156,19 @@ int main()
     }
     return canvas(std::move(c)); });
 
-    Component clear_board = Renderer([&]
-                                     {
-    Canvas c = Canvas(300, 300);
+  Component clear_board = Renderer([&]
+                                   {
+Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     c.DrawText(0, 0, "Board Cleared!");
     cp.clear();
     return canvas(std::move(c)); });
 
-    Component eraser = Renderer([&]
-                                {
-    Canvas c = Canvas(300, 300);
+  Component eraser = Renderer([&]
+                              {
 
+          
+Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
+    c.DrawText(0,0,"Eraser");
     for (size_t i = 0; i < cp.size(); i++) {
 
       if (cp[i].get_tab_option() == 0)
@@ -174,18 +179,19 @@ int main()
     }
     return canvas(std::move(c)); });
 
-    int selected_tab = 0;
-    int radio_selected = 0;
-    int prev_radio_selected = 0;
-    Component tab = Container::Tab({simple_pen,
-                                    thick_pen,
-                                    eraser,
-                                    clear_board},
-                                   &selected_tab);
+  int selected_tab = 0;
+  int radio_selected = 0;
+  int prev_radio_selected = 0;
+  Component tab = Container::Tab({simple_pen,
+                                  thick_pen,
+                                  eraser,
+                                  clear_board},
+                                 &selected_tab);
 
-    Component tab_with_mouse = CatchEvent(tab, [&](Event e)
-                                          {
-    if (e.is_mouse() && e.mouse().x < 130) {
+  Component tab_with_mouse = CatchEvent(tab, [&](Event e)
+                                        {            
+    if (e.is_mouse() && e.mouse().x < 115) // This works for anything from 80x24 and above 
+    {
       mouse_x = (e.mouse().x - 1) * 2;
       mouse_y = (e.mouse().y - 1) * 4;
 
@@ -276,41 +282,41 @@ int main()
     }
     return false; });
 
-    Component slider_red = Slider("Red  :", &red, 0, 255, 1);
-    Component slider_green = Slider("Green:", &green, 0, 255, 1);
-    Component slider_blue = Slider("Blue :", &blue, 0, 255, 1);
+  Component slider_red = Slider("Red  :", &red, 0, 255, 1);
+  Component slider_green = Slider("Green:", &green, 0, 255, 1);
+  Component slider_blue = Slider("Blue :", &blue, 0, 255, 1);
 
-    Component slider_container = Container::Vertical({
-        slider_red,
-        slider_green,
-        slider_blue,
-    });
+  Component slider_container = Container::Vertical({
+      slider_red,
+      slider_green,
+      slider_blue,
+  });
 
-    std::vector<std::string> tab_titles = {
-        "Simple Pen",
-        "Thick Pen",
-        "Eraser",
-        "Clear Board"};
+  std::vector<std::string> tab_titles = {
+      "Simple Pen",
+      "Thick Pen",
+      "Eraser",
+      "Clear Board"};
 
-    std::vector<std::string> radio_colour_options = {
-        "Red",
-        "Blue",
-        "Green",
-        "Yellow",
-        "Orange",
-        "White"};
+  std::vector<std::string> radio_colour_options = {
+      "Red",
+      "Blue",
+      "Green",
+      "Yellow",
+      "Orange",
+      "White"};
 
-    Component radiobox_colours = Radiobox(&radio_colour_options, &radio_selected);
+  Component radiobox_colours = Radiobox(&radio_colour_options, &radio_selected);
 
-    Component tab_toggle = Menu(&tab_titles, &selected_tab);
+  Component tab_toggle = Menu(&tab_titles, &selected_tab);
 
-    Component main_component = Container::Horizontal({tab_toggle,
-                                                      tab_with_mouse,
-                                                      radiobox_colours,
-                                                      slider_container});
+  Component main_component = Container::Horizontal({tab_toggle,
+                                                    tab_with_mouse,
+                                                    radiobox_colours,
+                                                    slider_container});
 
-    Component component_renderer = Renderer(main_component, [&]
-                                            {
+  Component component_renderer = Renderer(main_component, [&]
+                                          {
 
     if (radio_selected != prev_radio_selected) {
       set_default_colours(radio_selected, & red, & green, & blue);
@@ -337,8 +343,8 @@ int main()
         }) | size(WIDTH, EQUAL, 30),
       }) |
       border; });
-    ScreenInteractive screen = ScreenInteractive::FitComponent();
-    screen.Loop(component_renderer);
+  ScreenInteractive screen = ScreenInteractive::FitComponent();
+  screen.Loop(component_renderer);
 
-    return 0;
+  return 0;
 }
