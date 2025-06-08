@@ -33,3 +33,6 @@ git clone <repo url>
 
 Enjoy and let me know if you have any issues or suggestions :)
 
+![Screenshot from 2025-06-08 22-58-02](https://github.com/user-attachments/assets/aa09f67f-6708-4b7d-9992-54c6c562cb65)
+
+
