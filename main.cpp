@@ -131,11 +131,16 @@ int main()
   int blue = 0;
 
   int selected_tab = 0;
+  int prev_selected_tab = 0;
+
   int radio_selected = 0;
   int prev_radio_selected = 0;
-  int selected_pen = 0;   // value goes to 10 or 11
+  int selected_pen = 0; // value goes to 10 or 11
+  int prev_selected_pen = 0;
   int selected_brush = 0; // values goest to 20 or 21
-  int currently_active_tab = -1;
+  int prev_selected_brush = 0;
+  int currently_active_tab = 10; // default for pen x1
+  int last_changed = 1;          // 1 for pen change 2 for brush change 3 for eraser and 4 for clear board
 
   std::vector<Clicked_Point>
       cp;
@@ -143,11 +148,10 @@ int main()
   Component simple_pen = Renderer([&]
                                   {
     Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
-    c.DrawText(0, 0, "Simple pen");
+    c.DrawText(0, 0, "Simple Pen 1x");
     for (size_t i = 0; i < cp.size(); i++) {
       if (cp[i].get_tab_option() == 0)
         c.DrawPoint(cp[i].get_x(), cp[i].get_y(), true, Color::RGB(cp[i].get_red(), cp[i].get_green(), cp[i].get_blue()));
-
       else if (cp[i].get_tab_option() == 1)
         c.DrawBlockCircle(cp[i].get_x(), cp[i].get_y(), true, Color::RGB(cp[i].get_red(), cp[i].get_green(), cp[i].get_blue()));
     }
@@ -156,7 +160,7 @@ int main()
   Component thick_pen = Renderer([&]
                                  {
     Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
-    c.DrawText(0, 0, "Thick pen");
+    c.DrawText(0, 0, std::to_string(selected_tab));
     for (size_t i = 0; i < cp.size(); i++) {
       if (cp[i].get_tab_option() == 0)
         c.DrawPoint(cp[i].get_x(), cp[i].get_y(), true, Color::RGB(cp[i].get_red(), cp[i].get_green(), cp[i].get_blue()));
@@ -188,13 +192,13 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     }
     return canvas(std::move(c)); });
 
-  Component tab = Container::Tab({eraser,
+  Component tab = Container::Tab({simple_pen, thick_pen, eraser,
                                   clear_board},
                                  &selected_tab);
 
   Component tab_with_mouse = CatchEvent(tab, [&](Event e)
                                         {            
-    if (e.is_mouse() && e.mouse().x < int(std::floor(Terminal::Size().dimx / 1.177))) // This works for anything from 80x24 and above 
+    if (e.is_mouse() && e.mouse().x < int(std::floor(Terminal::Size().dimx / 1.177))) // Dynamic for terminal 1.17 is ratio of total col/canvas end(on terminal)
     {
       mouse_x = (e.mouse().x - 1) * 2;
       mouse_y = (e.mouse().y - 1) * 4;
@@ -202,7 +206,7 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
       if (e.mouse().button == Mouse::Button::Left) {
         if (e.mouse().motion == Mouse::Motion::Pressed) {
           is_drawing = true;
-          if (selected_tab == 0)
+          if (currently_active_tab == 10)
             cp.push_back({
               {
                 mouse_x,
@@ -213,7 +217,7 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
               green,
               blue
             });
-          else if (selected_tab == 1)
+          else if (currently_active_tab == 20)
             cp.push_back({
               {
                 mouse_x,
@@ -224,7 +228,7 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
               green,
               blue
             });
-          else if (selected_tab == 2) {
+          else if (currently_active_tab == 99) {
 
             auto it = std::find_if(cp.begin(), cp.end(),
               [mouse_x, mouse_y](const Clicked_Point & point) {
@@ -235,6 +239,10 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
               cp.erase(it);
 
             }
+          }
+          else if (currently_active_tab == 100)
+          {
+            cp.clear();
           }
           return true;
         } else if (e.mouse().motion == Mouse::Motion::Released) {
@@ -334,6 +342,32 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
       set_default_colours(radio_selected, & red, & green, & blue);
       prev_radio_selected = radio_selected;
     }
+
+    if (selected_pen != prev_selected_pen) 
+        {
+            currently_active_tab = selected_pen + 10; 
+            last_changed = 1;
+            prev_selected_pen = selected_pen;
+        }
+        else if (selected_brush != prev_selected_brush) {
+            currently_active_tab = selected_brush + 20; 
+            last_changed = 2;
+            prev_selected_brush = selected_brush;
+        }
+        else if (selected_tab != prev_selected_tab)
+        {
+          if (selected_tab == 0)
+          {
+              currently_active_tab = 0; // Eraser mode
+              last_changed = 3;
+          }
+          else if (selected_tab == 1)
+          {
+              currently_active_tab = 100; // Clear board mode
+              last_changed = 4;
+          }
+          prev_selected_tab = selected_tab;
+        }
 
     return hbox({
         tab_with_mouse -> Render(),
