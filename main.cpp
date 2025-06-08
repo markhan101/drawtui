@@ -133,9 +133,6 @@ int main()
   int selected_tab = 0;
   int radio_selected = 0;
   int prev_radio_selected = 0;
-  int selected_pen = 0;   // value goes to 10 or 11
-  int selected_brush = 0; // values goest to 20 or 21
-  int currently_active_tab = -1;
 
   std::vector<Clicked_Point>
       cp;
@@ -188,7 +185,7 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     }
     return canvas(std::move(c)); });
 
-  Component tab = Container::Tab({eraser,
+  Component tab = Container::Tab({simple_pen, thick_pen, eraser,
                                   clear_board},
                                  &selected_tab);
 
@@ -297,6 +294,8 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
   });
 
   std::vector<std::string> tab_titles = {
+      "Pen",
+      "Brush",
       "Eraser",
       "Clear Board"};
 
@@ -314,15 +313,7 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
 
   Component tab_toggle = Menu(&tab_titles, &selected_tab);
 
-  Component pen_toggle = Dropdown(&pen_types, &selected_pen);
-  Component brush_toggle = Dropdown(&brush_types, &selected_brush);
-
-  Component toggle_container = Container::Horizontal({pen_toggle,
-                                                      brush_toggle});
-
-  Component toggle_box = Container::Vertical({toggle_container, tab_toggle});
-
-  Component main_component = Container::Horizontal({toggle_box,
+  Component main_component = Container::Horizontal({tab_toggle,
                                                     tab_with_mouse,
                                                     radiobox_colours,
                                                     slider_container});
@@ -339,7 +330,7 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
         tab_with_mouse -> Render(),
         separator(),
         vbox({
-          toggle_box -> Render(),
+          tab_toggle -> Render(),
           separator(),
           ColorTile(red, green, blue),
           separator(),
