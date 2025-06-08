@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <algorithm>
+#include <math.h>
 
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
@@ -129,7 +130,15 @@ int main()
   int green = 0;
   int blue = 0;
 
-  std::vector<Clicked_Point> cp;
+  int selected_tab = 0;
+  int radio_selected = 0;
+  int prev_radio_selected = 0;
+  int selected_pen = 0;   // value goes to 10 or 11
+  int selected_brush = 0; // values goest to 20 or 21
+  int currently_active_tab = -1;
+
+  std::vector<Clicked_Point>
+      cp;
 
   Component simple_pen = Renderer([&]
                                   {
@@ -179,18 +188,13 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
     }
     return canvas(std::move(c)); });
 
-  int selected_tab = 0;
-  int radio_selected = 0;
-  int prev_radio_selected = 0;
-  Component tab = Container::Tab({simple_pen,
-                                  thick_pen,
-                                  eraser,
+  Component tab = Container::Tab({eraser,
                                   clear_board},
                                  &selected_tab);
 
   Component tab_with_mouse = CatchEvent(tab, [&](Event e)
                                         {            
-    if (e.is_mouse() && e.mouse().x < 115) // This works for anything from 80x24 and above 
+    if (e.is_mouse() && e.mouse().x < int(std::floor(Terminal::Size().dimx / 1.177))) // This works for anything from 80x24 and above 
     {
       mouse_x = (e.mouse().x - 1) * 2;
       mouse_y = (e.mouse().y - 1) * 4;
@@ -293,24 +297,32 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
   });
 
   std::vector<std::string> tab_titles = {
-      "Simple Pen",
-      "Thick Pen",
       "Eraser",
       "Clear Board"};
 
-  std::vector<std::string> radio_colour_options = {
-      "Red",
-      "Blue",
-      "Green",
-      "Yellow",
-      "Orange",
-      "White"};
+  std::vector<std::string> pen_types = {
+      "Pen 1x", // 1x default
+      "Pen 2x"};
+
+  std::vector<std::string>
+      brush_types = {"Brush 1x", "Brush 2x"};
+
+  std::vector<std::string>
+      radio_colour_options = {"Red", "Blue", "Green", "Yellow", "Orange", "White"};
 
   Component radiobox_colours = Radiobox(&radio_colour_options, &radio_selected);
 
   Component tab_toggle = Menu(&tab_titles, &selected_tab);
 
-  Component main_component = Container::Horizontal({tab_toggle,
+  Component pen_toggle = Dropdown(&pen_types, &selected_pen);
+  Component brush_toggle = Dropdown(&brush_types, &selected_brush);
+
+  Component toggle_container = Container::Horizontal({pen_toggle,
+                                                      brush_toggle});
+
+  Component toggle_box = Container::Vertical({toggle_container, tab_toggle});
+
+  Component main_component = Container::Horizontal({toggle_box,
                                                     tab_with_mouse,
                                                     radiobox_colours,
                                                     slider_container});
@@ -327,7 +339,7 @@ Canvas c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT);
         tab_with_mouse -> Render(),
         separator(),
         vbox({
-          tab_toggle -> Render(),
+          toggle_box -> Render(),
           separator(),
           ColorTile(red, green, blue),
           separator(),
